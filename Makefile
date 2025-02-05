@@ -1,5 +1,5 @@
 main: main.o glad.o shader.o stb_image.o
-	g++ -Iinclude -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -o main main.o glad.o shader.o stb_image.o
+	g++ -Iinclude -lglfw -o main main.o glad.o shader.o stb_image.o
 
 main.o: src/main.cpp include/glad/glad.h
 	g++ -Iinclude -c src/main.cpp
