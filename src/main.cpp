@@ -1,13 +1,22 @@
+#include "glm/ext/matrix_float4x4.hpp"
+#include "glm/ext/matrix_transform.hpp"
+#include "glm/ext/vector_float3.hpp"
+#include "glm/ext/vector_float4.hpp"
+#include "glm/trigonometric.hpp"
 #include <cmath>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-
 #include <shader.h>
 #include <stb_image.h>
 
-float mixValue = 0.0f;
+// OpenGL Mathematics
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
+float mixValue = 0.0f;
+float rotationValue = 0.0f;
 
 // Resize viewport when window size changes
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
@@ -29,6 +38,16 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
         if (mixValue < 1.0f)
             mixValue += 0.2f;
+    }
+    if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
+        rotationValue += 15.0f;
+        if (rotationValue > 360.0f)
+            rotationValue -= 360.0f;
+    }
+    if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
+        rotationValue -= 15.0f;
+        if (rotationValue < 360.0f)
+            rotationValue += 360.0f;
     }
 }
 
@@ -171,6 +190,11 @@ int main() {
         // Use the shader
         shader.use();
         shader.setFloat("mixture", mixValue);
+
+        // Apply rotation
+        glm::mat4 trans = glm::mat4(1.0f);
+        trans = glm::rotate(trans, glm::radians(rotationValue), glm::vec3(0.0f, 0.0f, 1.0f));
+        shader.setMatrix4("transform", glm::value_ptr(trans));
 
         // Bind VAO and draw the shape
         glActiveTexture(GL_TEXTURE0);
