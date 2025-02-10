@@ -1,7 +1,0 @@
-/home/mohamed/learnopengl/build/Desktop-Release/CMakeFiles/learnopengl.dir
-/home/mohamed/learnopengl/build/Desktop-Release/CMakeFiles/edit_cache.dir
-/home/mohamed/learnopengl/build/Desktop-Release/CMakeFiles/rebuild_cache.dir
-/home/mohamed/learnopengl/build/Desktop-Release/CMakeFiles/list_install_components.dir
-/home/mohamed/learnopengl/build/Desktop-Release/CMakeFiles/install.dir
-/home/mohamed/learnopengl/build/Desktop-Release/CMakeFiles/install/local.dir
-/home/mohamed/learnopengl/build/Desktop-Release/CMakeFiles/install/strip.dir

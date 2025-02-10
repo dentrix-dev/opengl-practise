@@ -1,1 +1,0 @@
-/usr/bin/g++ -O3 -DNDEBUG CMakeFiles/learnopengl.dir/main.cpp.o -o learnopengl  /usr/lib/x86_64-linux-gnu/libglfw.so.3.3 -ldl 

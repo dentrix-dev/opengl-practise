@@ -1,19 +1,24 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(learnopengl LANGUAGES CXX)
+project(learnopengl LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(learnopengl main.cpp glad.c)
+# Add the glad library (C language)
+add_library(glad STATIC glad.c)
+set_target_properties(glad PROPERTIES LINKER_LANGUAGE C)
+target_include_directories(glad PUBLIC ${CMAKE_SOURCE_DIR}/include)
 
-# Add the include directory (relative to the project root)
-target_include_directories(learnopengl PRIVATE ${CMAKE_SOURCE_DIR}/include)
-# Find and link GLFW (ensure version 3.3 or newer is installed)
-find_package(glfw3 3.3 REQUIRED)
-# Link the GLFW library to your target.
-# Use 'glfw3::glfw' if that's the imported target provided by your GLFW installation.
-target_link_libraries(learnopengl PRIVATE glfw dl)
+# Add the main executable
+add_executable(learnopengl main.cpp)
+
+# Find GLFW
+find_package(glfw3 REQUIRED)
+
+# Link everything properly
+target_link_libraries(learnopengl PRIVATE glad glfw GL dl)
+
 include(GNUInstallDirs)
 install(TARGETS learnopengl
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
