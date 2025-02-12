@@ -149,7 +149,7 @@ int main() {
     int width, height, numChannels;
 
     // ------ Texture 1 ------
-    unsigned char *textureData = stbi_load("res/container.jpg", &width, &height, &numChannels, 0);
+    unsigned char *textureData = stbi_load("src/res/container.jpg", &width, &height, &numChannels, 0);
     unsigned int texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
@@ -168,7 +168,7 @@ int main() {
     stbi_image_free(textureData);
 
     // ------ Texture 2 ------
-    unsigned char *texture2Data = stbi_load("res/wall.jpg", &width, &height, &numChannels, 0);
+    unsigned char *texture2Data = stbi_load("src/res/wall.jpg", &width, &height, &numChannels, 0);
     unsigned int texture2;
     glGenTextures(1, &texture2);
     glBindTexture(GL_TEXTURE_2D, texture2);
