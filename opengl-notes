@@ -10,10 +10,10 @@ Objects used:
 
 2. Vertex Data and Buffers
 
-    - Vertex Array Object (VAO): Stores the configuration of vertex attributes and buffer bindings. It acts as a container for the vertex state.
+    - Vertex Array Object (VAO): Stores the configuration of vertex attributes and buffer bindings. It acts as a container for the vertex state. 
     - Vertex Buffer Object (VBO): Stores vertex data (triangle coordinates) in GPU memory.
-    - Vertex Attribute Pointer (glVertexAttribPointer): Defines how vertex data is read from the VBO.
-
+    - EBO (Element Buffer Object): Stores indices to tell OpenGL how to form triangles.
+    
 Pipeline:
 1.Shader Compilation & Linking: Converts GLSL code into a format the GPU can execute.
 2.Vertex Data Binding: Links the triangle’s vertex data to the rendering pipeline.
