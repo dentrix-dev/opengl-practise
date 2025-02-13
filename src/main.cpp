@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <shader.h>
+#include <camera.h>
 #include <stb_image.h>
 
 // OpenGL Mathematics
@@ -20,11 +21,8 @@ const unsigned int SCREEN_WIDTH  = 800;
 const unsigned int SCREEN_HEIGHT = 600;
 
 bool firstMouseInput = true;
-float pitch = 0.0f;
-float yaw = -90.0f;
 float lastX = (float)SCREEN_WIDTH / 2.0;
 float lastY = (float)SCREEN_HEIGHT / 2.0;
-const float sensitivity = 0.1f;
 
 float mixValue = 0.0f;
 float rotationValue = 0.0f;
@@ -36,6 +34,8 @@ glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  5.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f,  -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
 
+Camera camera(cameraPos, cameraFront, cameraUp);
+
 // Resize viewport when window size changes
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -43,21 +43,20 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
 
 // Handle input
 void processInput(GLFWwindow *window) {
-    const float cameraSpeed = 2.5f * deltaTime;
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        cameraPos += cameraSpeed * cameraFront;
+        camera.processMovement(FORWARD, deltaTime);
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        cameraPos -= cameraSpeed * cameraFront;
+        camera.processMovement(BACK, deltaTime);
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        camera.processMovement(LEFT, deltaTime);
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        camera.processMovement(RIGHT, deltaTime);
     }
 }
 
@@ -94,22 +93,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
     lastX = xpos;
     lastY = ypos;
 
-    xOffset *= sensitivity;
-    yOffset *= sensitivity;
-
-    yaw = glm::mod(yaw + xOffset, 360.f);
-    pitch += yOffset;
-
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    glm::vec3 direction;
-    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    direction.y = sin(glm::radians(pitch));
-    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront = glm::normalize(direction);
+    camera.processMouse(xOffset, yOffset);
 }
 
 int main() {
@@ -300,7 +284,7 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, texture2);
 
         // Camera view matrix
-        glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        glm::mat4 view = camera.GetViewMatrix();
         shader.setMatrix4("view", glm::value_ptr(view));
 
         // Outer Cube
