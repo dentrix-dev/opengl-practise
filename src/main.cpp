@@ -5,6 +5,7 @@
 #include <shader.h>
 #include <camera.h>
 #include <stb_image.h>
+#include <model.h>
 
 // OpenGL Mathematics
 #include <glm/glm.hpp>
@@ -16,6 +17,12 @@
 #include <glm/ext/vector_float3.hpp>
 #include <glm/trigonometric.hpp>
 
+// Assimp model loading
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include <vector>
+
 // Variables
 const unsigned int SCREEN_WIDTH  = 800;
 const unsigned int SCREEN_HEIGHT = 600;
@@ -24,7 +31,6 @@ bool firstMouseInput = true;
 float lastX = (float)SCREEN_WIDTH / 2.0;
 float lastY = (float)SCREEN_HEIGHT / 2.0;
 
-float mixValue = 0.0f;
 float rotationValue = 0.0f;
 
 float deltaTime = 0.0f; // Time between current frame and last frame
@@ -61,14 +67,6 @@ void processInput(GLFWwindow *window) {
 }
 
 void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
-        if (mixValue > 0.0f)
-            mixValue -= 0.2f;
-    }
-    if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
-        if (mixValue < 1.0f)
-            mixValue += 0.2f;
-    }
     if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
         rotationValue += 15.0f;
         if (rotationValue > 360.0f)
@@ -128,126 +126,15 @@ int main() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouseCallback);
 
-    // --------------------- Textures --------------------
-    // Load data, and generate an opengl texture
-    int width, height, numChannels;
-
-    // ------ Texture 1 ------
-    unsigned char *textureData = stbi_load("src/res/container.jpg", &width, &height, &numChannels, 0);
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    // Set parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // Assign texture data
-    if (textureData) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureData);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    } else {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(textureData);
-
-    // ------ Texture 2 ------
-    unsigned char *texture2Data = stbi_load("src/res/wall.jpg", &width, &height, &numChannels, 0);
-    unsigned int texture2;
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-    // Set parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // Assign texture data
-    if (texture2Data) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture2Data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    } else {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(texture2Data);
-
-
     // --------------------- Shaders ---------------------
     Shader shader("src/shaders/vertexShader.vs", "src/shaders/fragmentShader.fs");
 
     // --------------------- Shape setup ---------------------
-    // Define vertices
-    float vertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-    };
-
-    // Define objects to hold the data and attributes
-    unsigned int VAO, VBO;
-    /*unsigned int EBO;*/
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    /*glGenBuffers(1, &EBO);*/
-    // Bind the VAO, and store the following VBO and EBO
-    glBindVertexArray(VAO);
-
-    // Bind the buffer and load the vertices data
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // This operates on VBO
-    // The same for EBO
-    /*glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);*/
-    /*glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);*/
-
-    // We need to specify how the vertex data should be interpreted
-    int vertexByteSize = 5 * sizeof(float);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertexByteSize, (void *)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vertexByteSize, (void *)(3*sizeof(float)));
-    glEnableVertexAttribArray(1);
+    Model sampleModel("src/models/Poimandres.obj");
 
     // --------------------- Setup ---------------------
     glEnable(GL_DEPTH_TEST);
     shader.use();
-    shader.setInt("texture", 0);
-    shader.setInt("texture2", 1);
 
     // Setup projection matrix once as it doesn't change
     glm::mat4 projection = glm::perspective(
@@ -256,6 +143,7 @@ int main() {
 
     // Reset mouse position to avoid initial jump
     glfwSetCursorPos(window, lastX, lastY);
+
     // Render loop
     while (!glfwWindowShouldClose(window)) {
         // Update time variables
@@ -270,44 +158,17 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Bind vertex array
-        glBindVertexArray(VAO);
-
          // Use the shader
         shader.use();
-        shader.setFloat("mixture", mixValue);
-
-        // Bind textures
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture2);
 
         // Camera view matrix
         glm::mat4 view = camera.GetViewMatrix();
         shader.setMatrix4("view", glm::value_ptr(view));
 
-        // Outer Cube
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(60.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.0f));
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
-
         shader.setMatrix4("model", glm::value_ptr(model));
 
-       // Draw outer cube
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
-        // Inner Cube
-        model = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::radians(rotationValue), glm::vec3(0.0f, 0.0f, 1.0f));
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(60.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-        shader.setMatrix4("model", glm::value_ptr(model));
-
-        // Draw inner cube
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        sampleModel.Draw();
 
         // Render color buffers
         glfwSwapBuffers(window);
