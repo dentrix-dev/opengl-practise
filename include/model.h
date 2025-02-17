@@ -5,8 +5,9 @@
 
 struct Vertex {
     glm::vec3 Position;
+  glm::vec3 Normal;
 
-    Vertex(glm::vec3 Position);
+    Vertex(glm::vec3 Position, glm::vec3 Normal);
 };
 
 class Mesh {

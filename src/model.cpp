@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <iostream>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -9,8 +10,9 @@
 
 
 // -------------- Vertex ---------------
-Vertex::Vertex(glm::vec3 Position) {
+Vertex::Vertex(glm::vec3 Position, glm::vec3 Normal) {
     this->Position = Position;
+    this->Normal = Normal;
 }
 
 // -------------- Mesh ----------------
@@ -37,6 +39,9 @@ void Mesh::setup() {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
 
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+
     glBindVertexArray(0);
 }
 
@@ -59,7 +64,7 @@ void Model::Draw() {
 
 void Model::loadModel(std::string path) {
     Assimp::Importer importer;
-    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenNormals);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
@@ -87,7 +92,8 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
 
     for (int i=0; i<mesh->mNumVertices; i++) {
         glm::vec3 v(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-        vertices.push_back(Vertex(v));
+        glm::vec3 n(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+        vertices.push_back(Vertex(v, n));
     }
 
     for (int i=0; i<mesh->mNumFaces; i++) {

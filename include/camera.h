@@ -8,7 +8,7 @@ class Camera {
     glm::vec3 up;
     float pitch = 0.0f;
     float yaw = -90.0f;
-    float speed = 2.5f;
+    float speed = 15.0f;
     float sensitivity = 0.1f;
 
   public:
