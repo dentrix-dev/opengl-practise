@@ -1,3 +1,4 @@
+#include "glm/ext/vector_float3.hpp"
 #include <cstddef>
 #include <iostream>
 #include <assimp/Importer.hpp>
@@ -16,9 +17,10 @@ Vertex::Vertex(glm::vec3 Position, glm::vec3 Normal) {
 }
 
 // -------------- Mesh ----------------
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices) {
+Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, glm::vec3 center) {
     this->vertices = vertices;
     this->indices = indices;
+    this->center = center;
 
     setup();
 }
@@ -89,9 +91,41 @@ void Model::processNode(aiNode *node, const aiScene *scene) {
 Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
+    float minX = mesh->mVertices[0].x;
+    float minY = mesh->mVertices[0].y;
+    float minZ = mesh->mVertices[0].z;
+    float maxX = mesh->mVertices[0].x;
+    float maxY = mesh->mVertices[0].y;
+    float maxZ = mesh->mVertices[0].z;
 
     for (int i=0; i<mesh->mNumVertices; i++) {
-        glm::vec3 v(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+        float x = mesh->mVertices[i].x;
+        float y = mesh->mVertices[i].y;
+        float z = mesh->mVertices[i].z;
+
+        if (x < minX)
+            minX = x;
+        else if (x > maxX)
+            maxX = x;
+
+        if (y < minY)
+            minY = y;
+        else if (y > maxY)
+            maxY = y;
+
+        if (z < minZ)
+            minZ = z;
+        else if (z > maxZ)
+            maxZ = z;
+    }
+
+    glm::vec3 center = glm::vec3((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2);
+
+    for (int i=0; i<mesh->mNumVertices; i++) {
+        float x = mesh->mVertices[i].x;
+        float y = mesh->mVertices[i].y;
+        float z = mesh->mVertices[i].z;
+        glm::vec3 v(x-center.x, y-center.y, z-center.z);
         glm::vec3 n(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
         vertices.push_back(Vertex(v, n));
     }
@@ -102,7 +136,7 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         indices.push_back(mesh->mFaces[i].mIndices[2]);
     }
 
-    return Mesh(vertices, indices);
+    return Mesh(vertices, indices, center);
 }
 
 

@@ -14,8 +14,10 @@ class Mesh {
   public:
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
+    // Needed to reset model back to origin
+    glm::vec3 center;
 
-    Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
+    Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, glm::vec3 center);
 
     void Draw();
 

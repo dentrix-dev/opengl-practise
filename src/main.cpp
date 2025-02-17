@@ -21,7 +21,6 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <vector>
 
 // Variables
 const unsigned int SCREEN_WIDTH  = 800;
@@ -36,7 +35,7 @@ float rotationValue = 0.0f;
 float deltaTime = 0.0f; // Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 
-glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  5.0f);
+glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  70.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f,  -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
 
